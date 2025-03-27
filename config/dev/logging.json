@@ -1,0 +1,30 @@
+{
+	"version": 1,
+	"disable_existing_loggers": false,
+	"formatters": {
+		"simple": {
+			"format": "%(asctime)s %(levelname)s %(name)s - %(message)s"
+		}
+	},
+	"handlers": {
+		"console": {
+			"class": "logging.StreamHandler",
+			"formatter": "simple",
+			"level": "INFO",
+			"stream": "ext://sys.stdout"
+		},
+		"file": {
+			"class": "logging.handlers.TimedRotatingFileHandler",
+			"formatter": "simple",
+			"level": "DEBUG",
+			"encoding": "UTF-8",
+			"filename": "E:/Dev/logs/CoverLetterTemplateFiller/CLTemplateFiller.log",
+			"when": "D",
+			"backupCount": 14
+		}
+	},
+	"root": {
+		"level": "DEBUG",
+		"handlers": ["file"]
+	}
+}

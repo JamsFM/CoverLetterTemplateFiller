@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectTreeColorHighlighter">
+    <files>
+      <node color="12" path="$USER_HOME$/Pictures/CLTemplateFiller_run.bat" />
+      <node color="10" path="$PROJECT_DIR$/../../config/CLTemplateFiller/CLTemplateFiller.ini" />
+      <node color="01" path="$PROJECT_DIR$/CLTemplateFiller.iml" />
+      <node color="01" path="$PROJECT_DIR$/.idea/highlightedFiles.xml" />
+      <node color="01" path="$PROJECT_DIR$/.idea/runConfigurations" />
+      <node color="02" path="$PROJECT_DIR$/config/dev" />
+      <node color="05" path="$PROJECT_DIR$/config/prod" />
+      <node color="10" path="$PROJECT_DIR$/README.md" />
+      <node color="06" path="$PROJECT_DIR$/src" />
+      <node color="11" path="$PROJECT_DIR$/src/CoverLetterTemplateFiller.py" />
+      <node color="08" path="$PROJECT_DIR$/test-data" />
+      <node color="09" path="$PROJECT_DIR$/test-data/in_Original" />
+      <node color="07" path="$PROJECT_DIR$/test-src" />
+    </files>
+    <colors>
+      <color id="01" value="#1a736213" name="IDE Objs" enabled="true" />
+      <color id="02" value="#1451737e" name="DEV" enabled="true" />
+      <color id="03" name="SYS" />
+      <color id="04" name="PPMO" />
+      <color id="05" value="#7365327d" name="PROD" enabled="true" />
+      <color id="06" value="#171a3425" name="Source" enabled="true" />
+      <color id="07" value="#1e1e1e26" name="test-src" enabled="true" />
+      <color id="08" value="#87939a25" name="test-data" enabled="true" />
+      <color id="09" value="#44220e25" name="test-data/*_Original" enabled="true" />
+      <color id="10" value="#3a09737d" name="Resources" enabled="true" />
+      <color id="11" value="#7337127e" name="Driver" enabled="true" />
+      <color id="12" value="#7273077d" name="Helper" enabled="true" />
+      <color id="13" name="Color 13" />
+      <color id="14" name="Color 14" />
+      <color id="15" name="Color 15" />
+      <color id="16" name="Color 16" />
+    </colors>
+    <option name="marksForCollapsedHighlights" value="Dots" />
+  </component>
+</project>

@@ -1,0 +1,9 @@
+/.idea/*
+!/.idea/runConfigurations
+!.idea/*.iml
+!.idea/highlightedFiles.xml
+!/*.iml
+/test-data/*
+!/test-data/*_Original
+!/In/*.docx
+!/Out/*.docx
