@@ -6,6 +6,9 @@ from json import load
 from shutil import copy2
 from docx import Document
 from docx.shared import Pt
+from spire.doc import Document as SpireDoc
+from spire.doc import FileFormat, ToPdfParameterList
+#from spire.doc.common import *
 
 # Read app folder argument
 app_root = "E:/Dev/Repos/CoverLetterTemplateFiller"
@@ -138,6 +141,23 @@ def templateFiller(srcPath, destPath):
     return 0
 
 
+def docxToPDF(destPath):
+    """Save the docx file as a pdf file"""
+    document = SpireDoc()
+    try:
+        document.LoadFromFile(destPath)
+        parameter = ToPdfParameterList()
+        parameter.IsEmbeddedAllFonts = True
+        #document.SaveToFile(destPath.replace(".docx", ".pdf"), FileFormat.PDF)
+        document.SaveToFile(destPath.replace(".docx", ".pdf"), parameter)
+    except Exception as ex:
+        logger.error(f'Following File could not be Converted to PDF!\t[{destPath}]')
+        logger.error(f'Exception:\n[{ex}]')
+        raise
+    finally:
+        document.Close()
+
+
 def templator(config):
     """Create fresh copy of Cover Letter Template in /Out Dir for use in the templateFiller"""
     # Initialize Names for use in the copy method  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -156,6 +176,8 @@ def templator(config):
 
     # Run the Template Filler Next  <><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>
     templateFiller(srcPath, destPath)
+    # Run the docx To PDF Next  <><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>
+    docxToPDF(destPath)
 
     logger.info(f'Successfully Filled Template')
     return 0
