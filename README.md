@@ -1,7 +1,7 @@
 # Cover Letter Template Filler
 
-### Author: James F. Mare`
-### Status: Dropped due to library limitations (paywall)
+### **Author:** *James F. Mare`*
+### **Status:** *Dropped due to library limitations (paywall)*
 
 #### Summary: 
     This script uses the Spire.Doc library to fill in a template for a cover letter.
