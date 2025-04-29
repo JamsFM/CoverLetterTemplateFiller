@@ -1,7 +1,8 @@
 # Cover Letter Template Filler
 
-### Author: James F. Mare`
-### Date: 2025-04-29
+### **Author:** *James F. Mare`*
+### **Status:** *Completed and Functioning*
+### **Date:** *2025-04-29*
 
 #### Summary: 
     This script uses the Python-docx library to fill in a template for a cover letter.
