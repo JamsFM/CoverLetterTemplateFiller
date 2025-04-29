@@ -12,7 +12,7 @@ Description:
 
     The script will then copy the filled template to the destination folder
 
-    The logging location and config details can be set/found here:
+    The logging and config details can be set/found here:
         config/dev/logging.json
         config/dev/CLTemplateFiller.ini
 """

@@ -5,5 +5,5 @@
 !/*.iml
 /test-data/*
 !/test-data/*_Original
-!/In/*.docx
-!/Out/*.docx
+!/In/*
+!/Out/*
