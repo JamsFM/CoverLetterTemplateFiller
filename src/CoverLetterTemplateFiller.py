@@ -1,4 +1,21 @@
-"""Script to Fill a CoverLetter Template"""
+"""Script to Fill a CoverLetter Template
+Author: James F. Mare`
+Date: 2025-04-29
+
+To Run:
+    shell/CLTemplateFiller_run.bat
+
+Description:
+    This script will fill a Cover Letter Template with user given input parameters
+    The input parameters then replace the data fields within the template:
+    [Role], [Company], [Healthcare]
+
+    The script will then copy the filled template to the destination folder
+
+    The logging location and config details can be set/found here:
+        config/dev/logging.json
+        config/dev/CLTemplateFiller.ini
+"""
 from sys import exit
 from os import path, remove
 import subprocess
@@ -10,7 +27,7 @@ from shutil import copy2
 from docx import Document
 from docx.shared import Pt
 from re import search, sub
-from time import sleep, ctime
+from time import ctime
 from datetime import datetime
 
 # Read app folder argument
@@ -32,13 +49,14 @@ def docPropSetter(core_props):
     logger.info(f'Successfully Filled/Transformed Cover Letter Template File')
 
 
-def docAsStringLogger(paragraphs):
+'''def docAsStringLogger(paragraphs):
+    """Log the document as a string; for debugging purposes"""
     docAsString = ""
     for paragraph in paragraphs:
         docAsString += f"~{paragraph.text}\n"
     logger.info(f"\n{docAsString}")
 
-    logger.info(f'End of File')
+    logger.info(f'End of File')'''
 
 
 def fileCopier(srcPath, destPath):
@@ -50,17 +68,6 @@ def fileCopier(srcPath, destPath):
         logger.error(f'Following File could not be Copied!\t[{srcPath}]')
         logger.error(f'Exception:\n[{ex}]')
         raise
-
-
-def validateParagraphSel(upperInitRef, lowerInitRef, upperCurrRef, lowerCurrRef):
-    """Use XOR to validate whether the correct paragraphs are being transformed/filled during a given run"""
-    upperInitRefValid = upperInitRef.__contains__(upperCurrRef)
-    lowerInitRefValid = lowerInitRef.__contains__(lowerCurrRef)
-    errMsg = "Failed to Select the correct Paragraph.\n\tBegan with-"
-    if not upperInitRefValid:
-        raise Exception(f'{errMsg}\t\t\"{upperInitRef[:90]}\"\n\tInstead of-\t\t\"{upperCurrRef}\"')
-    if not lowerInitRefValid:
-        raise Exception(f'{errMsg}\t\t\"{lowerInitRef[:90]}\"\n\tInstead of-\t\t\"{lowerCurrRef}\"')
 
 
 def fetchUserInput():
@@ -93,41 +100,45 @@ def fetchUserInput():
     return inputRole, inputCompany, healthcareFlag
 
 
-def validateParagraphFill(upperCurrRef, lowerCurrRef, upperInitRef, lowerInitRef):
+# noinspection t
+def tokenReplacer(docBody, substitutionDictionary):
+    """Replace a token in a given paragraph with the given text"""
+    for subKey in substitutionDictionary:
+        logger.info(f'Beginning to replace: \"{subKey}\" with: \"{substitutionDictionary[subKey]}\"-')
+        for paragraph in docBody:
+            if subKey in paragraph.text:
+                logger.info(f'Substitution found in paragraph:\n\"{paragraph.text[:100]}...\"')
+                tokenizedRun = paragraph.runs
+                for i in range(len(tokenizedRun)):
+                    currToken = tokenizedRun[i].text
+                    if subKey in currToken:
+                        oldToken = currToken
+                        tokenizedRun[i].text = currToken.replace(subKey, substitutionDictionary[subKey])
+                        newToken = tokenizedRun[i].text
+                        logger.info(f'Successfully set \"{oldToken}\" to \"{newToken}\"')
+
+
+def validateDocFill(bodyCurrRef, bodyInitRef):
     """Validate whether the paragraphs were filled with the data"""
-    errMsg = "Failed to fill the following paragraph with the correct data.\n"
-    if upperCurrRef.__eq__(upperInitRef):
-        raise Exception(f'{errMsg}\"{upperCurrRef}\"')
-    if lowerCurrRef.__eq__(lowerInitRef):
-        raise Exception(f'{errMsg}\"{lowerCurrRef}\"')
+    if bodyCurrRef is bodyInitRef:
+        raise Exception(f'Failed to fill the following with the correct data-\n\"{bodyInitRef}\"')
+    logger.info(f'Successfully Validated that Paragraph was changed.')
 
 
-def styleParagraph(paragraphs, index, docStyle, docFontName, docFontSize):
-    """Style a paragraph with a given style, font name, & font size"""
-    preserveTxtFormatting(paragraphs[index], paragraphs[index].text)
-    paragraphs[index].style = docStyle
-    paragraphs[index].style.font.name = docFontName
-    #logger.info(f'\t~~~~\t~~~~\t~~~~\t~~~~[{paragraphs[index].style.font.name}]')
+def stylizeDoc(docBody, docStyle, docFontName, docFontSize):
+    """Style a paragraph with a given style, font name, & font size
+        cp /mnt/c/Windows/Fonts/calibri.ttf home/jamesfm/.fonts/"""
+    map(lambda x: docStyle, map(lambda x: x.style, docBody))
+    logger.info(f'Successfully set docStyle to: [{docStyle}]')
 
-    #logger.info(f'\t~~~~\t~~~~\t~~~~\t~~~~[{paragraphs[index].style.font.size}]')
-    paragraphs[index].style.font.size = docFontSize
+    map(lambda x: docFontName, map(lambda x: x.style.font.name, docBody))
+    logger.info(f'Successfully set docFontName to: [{docFontName}]')
 
-
-def preserveTxtFormatting(paragraph, text):
-    """Preserve text formatting for the first run in a given paragraph"""
-    # Replace text of first run paragraph
-    runs = paragraph.runs
-    if not runs:
-        raise Exception(f'Failed to preserve text formatting for the following paragraph.\n\t\"{paragraph.text}\"')
-
-    runs[0].text = text
-
-    # Delete all remaining runs
-    for run in runs[1:]:
-        r = run._element
-        r.getparent().remove(r)
+    map(lambda x: docFontSize, map(lambda x: x.style.font.size, docBody))
+    logger.info(f'Successfully set docFontSize to: [{docFontSize}]')
 
 
+# noinspection t
 def templateFiller(srcPath, destPath):
     """Fill/Transform the data fields in the Cover Letter Template given Input-Params"""
     doc = Document(srcPath)
@@ -135,39 +146,30 @@ def templateFiller(srcPath, destPath):
     docPropSetter(doc.core_properties)
 
     # Preparing to transform data in two paragraphs  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    paragraphs, upperIdx, lowerIdx = doc.paragraphs, 4, 8
-    upperInitRef, lowerInitRef = paragraphs[upperIdx].text, paragraphs[lowerIdx].text
-    docStyle, docFontName, docFontSize = paragraphs[upperIdx].style, 'Calibri', Pt(12)
-    upperSnippetRef = "I am excited to apply for the [Role] position at [Company]. With a strong foundation in software"
-    lowerSnippetRef = "I am eager for the opportunity to bring my problem-solving abilities and technical expertise to"
-    # Run the Validator for Paragraph Selection   <><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>
-    validateParagraphSel(upperInitRef, lowerInitRef, upperSnippetRef, lowerSnippetRef)
+    paragraphs, healthcareParagraphIdx, docBodyIndices = doc.paragraphs, 8, slice(4, 9, 1)
+    # Create a subset of the document referring to the Main Body
+    docBody = paragraphs[docBodyIndices]
+    bodyInitRef = map(lambda x: x.text, docBody)
+    # Gather the Style, Font Name, & Font Size details
+    docStyle, docFontName, docFontSize = docBody[0].style, 'Calibri', Pt(12)
 
     # Fetch Data from User Input for the Template   <><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>
     inputRole, inputCompany, healthcareFlag = fetchUserInput()
-    # Health Care Snippet for lower paragraph  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    healthcareSnippet = ("am sure my experience coming from the healthcare world could be of some use, and ease my "
-                         "potential transition. I, not only look forward to continuing to make a difference in this "
-                         "world of uncertainty that we find ourselves living in, but I also ")
-
-    # Fill/Transform the data in the upper paragraph  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    logger.info(f'\nFilling the following paragraph:\n[{paragraphs[upperIdx].text}]')
-    paragraphs[upperIdx].text = paragraphs[upperIdx].text.replace("[Role]", inputRole)
-    logger.info(f'\nFilled the following paragraph:\n[{paragraphs[upperIdx].text}]')
-
-    # Fill/Transform the data in the upper paragraph  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    paragraphs[upperIdx].text = paragraphs[upperIdx].text.replace("[Company]", inputCompany)
-    paragraphs[lowerIdx].text = paragraphs[lowerIdx].text.replace("[Company]", inputCompany)
-
+    # Health Care Snippet for last paragraph  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    healthcareSnippet = ("I am sure my experience coming from the healthcare world could be of some use, and ease my "
+                         "potential transition.")
     if not healthcareFlag:
-        paragraphs[lowerIdx].text = paragraphs[lowerIdx].text.replace(healthcareSnippet, "")
+        healthcareSnippet = ""
+
+    # Fill/Transform the data in the doc body  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    substitutionDictionary = {'[Role]': inputRole, '[Company]': inputCompany, '[Healthcare]': healthcareSnippet}
+    tokenReplacer(docBody, substitutionDictionary)
 
     # Validate paragraphs   <><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>
-    validateParagraphFill(paragraphs[upperIdx].text, paragraphs[lowerIdx].text, upperInitRef, lowerInitRef)
+    validateDocFill(map(lambda x: x.text, docBody), bodyInitRef)
 
     # Stylize the upper & lower paragraphs  <><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>
-    styleParagraph(paragraphs, upperIdx, docStyle, docFontName, docFontSize)
-    styleParagraph(paragraphs, lowerIdx, docStyle, docFontName, docFontSize)
+    stylizeDoc(docBody, docStyle, docFontName, docFontSize)
 
     doc.save(destPath)
     logger.info(f'Successfully Filled Cover Letter Template File')
@@ -177,7 +179,6 @@ def templateFiller(srcPath, destPath):
 def wslMntr(winPath):
     """Takes a Windows Path and converts it to a WSL Mounted Path
         "{driveLetter}:/" -> /mnt/{driveLetter}/
-        cp /mnt/c/Windows/Fonts/calibri.ttf home/jamesfm/.fonts/
     """
     winDrive = search("[A-Z]:/", winPath)[0]
     if winDrive:
@@ -270,7 +271,7 @@ def templator(config):
     docSrcPath = PurePosixPath(f"{app_root}/In/{docSrcFileName}")
     docDestPath = PurePosixPath(f"{app_root}/Out/{docDestFileName}")
 
-    # Run the File Copier Method  <><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>
+    # Run the File Copier Method; Move PDF from /In Dir to /Out Dir for further processing  <><><><><><><><><><><><><><>
     fileCopier(docSrcPath, docDestPath)
 
     # Run the Template Filler Method  <><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>
@@ -278,7 +279,7 @@ def templator(config):
     # Run the docx To PDF Method  <><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>
     pdfFile = reattemptDocxToPDF(docDestPath)
 
-    # Run the File Copier Method  <><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>
+    # Run the File Copier Method; Move PDF from /Out Dir to Final Destination   <><><><><><><><><><><><><><><><><><><><>
     pdfDestDir = config.get("templator.properties", "PDF_FINAL_DEST_DIR")
     pdfDestPath = f'{pdfDestDir}{docDestFileName.replace(".docx", ".pdf")}'
     fileCopier(pdfFile, pdfDestPath)
